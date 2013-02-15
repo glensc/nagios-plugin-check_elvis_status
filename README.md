@@ -1,4 +1,4 @@
-nagios-plugin-check_elvis_status
+Nagios plugin: check_elvis_status
 ================================
 
-Check Elvis DAM status via admin /server-status json data
+Check [Elvis DAM](http://www.elvisdam.com/) status via admin /server-status json data
