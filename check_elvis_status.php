@@ -50,7 +50,7 @@ Plugin action specific options:
  * http://stackoverflow.com/questions/11807115/php-convert-kb-mb-gb-tb-etc-to-bytes
  */
 function byteConvert($input) {
-	if (!preg_match('/^(?P<number>[\d.,]+)\s*(?P<type>\w+)$/', $input, $m)) {
+	if (!preg_match('/^(?P<number>[\d.,]+)\s*(?P<type>\w+B)$/i', $input, $m)) {
 		return $input;
 	}
 
