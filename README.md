@@ -9,7 +9,7 @@ Numbers may be expressed with size qualifiers (TB, GB, MB).
 It expression is taken via `-e` option, the warning and critical tresholds are configurable with `-w` and `-c` 
 options respectively. Additionally `-i` option allows you inverse the comparision logic.
 
-Requires: php 5.0, php-json (if using php 5.2, use json pecl)
+Requires: php 5.2, [php-json](http://php.net/json) (if using php < 5.2, use [json pecl](http://pecl.php.net/package/json))
 
 Examples
 ========
