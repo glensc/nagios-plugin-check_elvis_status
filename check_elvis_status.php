@@ -3,7 +3,7 @@
 /* vim: set encoding=utf-8: */
 /*
  * Nagios plugin to check Elvis DAM server-status json
- * Copyright (C) 2012 Elan Ruusamäe <glen@delfi.ee>
+ * Copyright (C) 2013 Elan Ruusamäe <glen@delfi.ee>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define('PROGNAME', basename(array_shift($argv)));
+define('PROGNAME', basename(array_shift($argv), '.php'));
 define('LABEL', strtoupper(str_replace('check_', '', PROGNAME)));
 
 // loads from same dir as program
@@ -34,11 +34,12 @@ Check Elvis DAM server-status data
 Example: ", PROGNAME ,"
 
 Plugin action specific options:
-  -u                    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/dam/controller/admin/server-status
-  -m                    Message what you are querying
-  -e                    Expression what to retrieve from json data. this must be valid PHP Expression
-  -w                    The warning range. default '{$opt['w']}'
-  -c                    The critical range. default '{$opt['c']}'
+  -u    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/dam/controller/admin/server-status
+  -m    Message what you are querying
+  -e    Expression what to retrieve from json data. this must be valid PHP Expression
+  -w    The warning range. default '{$opt['w']}'
+  -c    The critical range. default '{$opt['c']}'
+  -v    Enable verbose mode.
 ";
 	exit(STATE_UNKNOWN);
 }
@@ -47,10 +48,11 @@ $default_opt = array(
 	'u' => '',
 	'm' => '',
 	'e' => null,
+	'v' => null,
 	'w' => 0,
 	'c' => 0,
 );
-$opt = array_merge($default_opt, getopt("u:e:m:w:c:"));
+$opt = array_merge($default_opt, getopt("u:e:m:w:c:v"));
 
 if (empty($opt['u']) || !isset($opt['e'])) {
 	usage();
@@ -69,6 +71,9 @@ if ($json === null) {
 }
 
 $eval = 'return $json' . $opt['e'] .';';
+if (isset($opt['v'])) {
+	echo "EVAL: $eval\n";
+}
 $res = eval($eval);
 
 if ($res === null) {
