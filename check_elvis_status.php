@@ -45,6 +45,38 @@ Plugin action specific options:
 	exit(STATE_UNKNOWN);
 }
 
+/*
+ * based on code from:
+ * http://stackoverflow.com/questions/11807115/php-convert-kb-mb-gb-tb-etc-to-bytes
+ */
+function byteConvert($input) {
+	if (!preg_match('/^(?P<number>[\d.,]+)\s*(?P<type>\w+)$/', $input, $m)) {
+		return $input;
+	}
+
+	// comma is decimal separator. replace it to computer language
+	$number = str_replace(',', '.', $m['number']);
+
+	switch (strtoupper($m['type'])) {
+	case "B":
+		$output = $number;
+		break;
+	case "KB":
+		$output = $number*1024;
+		break;
+	case "MB":
+		$output = $number*1024*1024;
+		break;
+	case "GB":
+		$output = $number*1024*1024*1024;
+		break;
+	case "TB":
+		$output = $number*1024*1024*1024;
+		break;
+	}
+	return $output;
+}
+
 $default_opt = array(
 	'u' => '',
 	'm' => '',
@@ -55,6 +87,9 @@ $default_opt = array(
 );
 $opt = array_merge($default_opt, getopt("u:e:m:w:c:vi"));
 $invert = isset($opt['i']);
+$verbose = isset($opt['v']);
+$critical = byteConvert($opt['c']);
+$warning = byteConvert($opt['w']);
 
 if (empty($opt['u']) || !isset($opt['e'])) {
 	usage();
@@ -73,7 +108,7 @@ if ($json === null) {
 }
 
 $eval = 'return $json' . $opt['e'] .';';
-if (isset($opt['v'])) {
+if ($verbose) {
 	echo "EVAL: $eval\n";
 }
 $res = eval($eval);
@@ -84,10 +119,17 @@ if ($res === null) {
 } elseif ($res === false) {
 	echo LABEL, ": ERROR: {$opt['m']}: parse error: {$opt['e']}\n";
 	exit(STATE_UNKNOWN);
-} elseif ((!$invert && $res > $opt['c']) || ($invert && $res < $opt['c']))  {
+}
+
+$value = byteConvert($res);
+if ($verbose) {
+	echo "RES: $res; VALUE: $value; WARNING: $warning; CRITICAL: $critical\n";
+}
+
+if ((!$invert && $value > $critical) || ($invert && $value < $critical))  {
 	echo LABEL, ": CRITICAL: {$opt['m']}: $res\n";
 	exit(STATE_CRITICAL);
-} elseif ((!$invert && $res > $opt['w']) || ($invert && $res < $opt['w'])) {
+} elseif ((!$invert && $value > $warning) || ($invert && $value < $warning)) {
 	echo LABEL, ": WARNING: {$opt['m']}: $res\n";
 	exit(STATE_WARNING);
 } else {
