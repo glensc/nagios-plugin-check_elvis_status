@@ -37,6 +37,7 @@ Plugin action specific options:
   -u    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/dam/controller/admin/server-status
   -m    Message what you are querying
   -e    Expression what to retrieve from json data. this must be valid PHP Expression
+  -i    Invert expression, critical and warning must be below the tresholds
   -w    The warning range. default '{$opt['w']}'
   -c    The critical range. default '{$opt['c']}'
   -v    Enable verbose mode.
@@ -52,7 +53,8 @@ $default_opt = array(
 	'w' => 0,
 	'c' => 0,
 );
-$opt = array_merge($default_opt, getopt("u:e:m:w:c:v"));
+$opt = array_merge($default_opt, getopt("u:e:m:w:c:vi"));
+$invert = isset($opt['i']);
 
 if (empty($opt['u']) || !isset($opt['e'])) {
 	usage();
@@ -82,10 +84,10 @@ if ($res === null) {
 } elseif ($res === false) {
 	echo LABEL, ": ERROR: {$opt['m']}: parse error: {$opt['e']}\n";
 	exit(STATE_UNKNOWN);
-} elseif ($res > $opt['c']) {
+} elseif ((!$invert && $res > $opt['c']) || ($invert && $res < $opt['c']))  {
 	echo LABEL, ": CRITICAL: {$opt['m']}: $res\n";
 	exit(STATE_CRITICAL);
-} elseif ($res > $opt['w']) {
+} elseif ((!$invert && $res > $opt['w']) || ($invert && $res < $opt['w'])) {
 	echo LABEL, ": WARNING: {$opt['m']}: $res\n";
 	exit(STATE_WARNING);
 } else {
