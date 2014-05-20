@@ -39,7 +39,7 @@ Check Elvis DAM server-status data
 Example: ", PROGNAME ,"
 
 Plugin action specific options:
-  -u    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/dam/controller/admin/server-status
+  -u    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/controller/admin/server-status
   -m    Message what you are querying
   -e    Expression what to retrieve from json data. this must be valid PHP Expression
   -i    Invert expression, critical and warning must be below the tresholds
