@@ -21,6 +21,7 @@
 
 define('PROGNAME', basename(array_shift($argv), '.php'));
 define('LABEL', strtoupper(str_replace('check_', '', PROGNAME)));
+define('VERSION', '0.2');
 
 // nagios state constants
 // https://github.com/pld-linux/nagios-plugins/blob/master/nagios-utils.php
@@ -36,7 +37,7 @@ function usage() {
     echo "Usage: ", PROGNAME, " [OPTION]...
 
 Check Elvis DAM server-status data
-Example: ", PROGNAME ,"
+Example: ", PROGNAME ," v", VERSION, "
 
 Plugin action specific options:
   -u    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/controller/admin/server-status
