@@ -3,7 +3,7 @@
 /* vim: set encoding=utf-8: */
 /*
  * Nagios plugin to check Elvis DAM server-status json
- * Copyright (C) 2013 Elan Ruusamäe <glen@delfi.ee>
+ * Copyright (C) 2013-2014 Elan Ruusamäe <glen@delfi.ee>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,13 @@
 define('PROGNAME', basename(array_shift($argv), '.php'));
 define('LABEL', strtoupper(str_replace('check_', '', PROGNAME)));
 
-// loads from same dir as program
-require_once 'utils.php';
+// nagios state constants
+// https://github.com/pld-linux/nagios-plugins/blob/master/nagios-utils.php
+define('STATE_OK', 0);
+define('STATE_WARNING', 1);
+define('STATE_CRITICAL', 2);
+define('STATE_UNKNOWN', 3);
+define('STATE_DEPENDENT', 4);
 
 function usage() {
 	global $default_opt;
