@@ -3,7 +3,7 @@
 /* vim: set encoding=utf-8: */
 /*
  * Nagios plugin to check Elvis DAM server-status json
- * Copyright (C) 2013-2014 Elan Ruusamäe <glen@delfi.ee>
+ * Copyright (C) 2013-2017 Elan Ruusamäe <glen@delfi.ee>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 define('PROGNAME', basename(array_shift($argv), '.php'));
 define('LABEL', strtoupper(str_replace('check_', '', PROGNAME)));
-define('VERSION', '0.2');
+define('VERSION', '0.3');
 
 // nagios state constants
 // https://github.com/pld-linux/nagios-plugins/blob/master/nagios-utils.php
@@ -34,13 +34,14 @@ define('STATE_DEPENDENT', 4);
 function usage() {
 	global $default_opt;
 	$opt = $default_opt;
-    echo "Usage: ", PROGNAME, " [OPTION]...
+	echo "Usage: ", PROGNAME, " [OPTION]...
 
 Check Elvis DAM server-status data
-Example: ", PROGNAME ," v", VERSION, "
+Example: ", PROGNAME, " v", VERSION, "
 
 Plugin action specific options:
-  -u    URL to Elvis DAM /server-status. Sample: http://USERNAME:PASSWORD@HOSTNAME/controller/admin/server-status
+  -u    URL to Elvis DAM /server-status. Example: http://HOSTNAME/controller/admin/server-status
+  -a    Optional HTTP Authorization. Example -a USERNAME:PASSWORD
   -m    Message what you are querying
   -e    Expression what to retrieve from json data. this must be valid PHP Expression
   -i    Invert expression, critical and warning must be below the tresholds
@@ -68,22 +69,41 @@ function byteConvert($input) {
 		$output = $number;
 		break;
 	case "KB":
-		$output = $number*1024;
+		$output = $number * 1024;
 		break;
 	case "MB":
-		$output = $number*1024*1024;
+		$output = $number * 1024 * 1024;
 		break;
 	case "GB":
-		$output = $number*1024*1024*1024;
+		$output = $number * 1024 * 1024 * 1024;
 		break;
 	case "TB":
-		$output = $number*1024*1024*1024;
+		$output = $number * 1024 * 1024 * 1024;
 		break;
 	}
 	return $output;
 }
 
+/**
+ * @param string $url
+ * @param string $auth HTTP Basic Authorization (username:password)
+ * @return string
+ */
+function wget($url, $auth) {
+	$opts = array();
+	if ($auth) {
+		$header = array("Authorization: Basic " . base64_encode($auth));
+		$opts = array('http' => array(
+			'method' => 'GET',
+			'header' => $header,
+		));
+	}
+	$ctx = stream_context_create($opts);
+	return file_get_contents($url, false, $ctx);
+}
+
 $default_opt = array(
+	'a' => '',
 	'u' => '',
 	'm' => '',
 	'e' => null,
@@ -91,7 +111,7 @@ $default_opt = array(
 	'w' => 0,
 	'c' => 0,
 );
-$opt = array_merge($default_opt, getopt("u:e:m:w:c:vi"));
+$opt = array_merge($default_opt, getopt("a:u:e:m:w:c:vi"));
 $invert = isset($opt['i']);
 $verbose = isset($opt['v']);
 $critical = byteConvert($opt['c']);
@@ -101,7 +121,7 @@ if (empty($opt['u']) || !isset($opt['e'])) {
 	usage();
 }
 
-$data = file_get_contents($opt['u']);
+$data = wget($opt['u'], $opt['a']);
 if ($data === false) {
 	echo "ERROR: Can't fetch '{$opt['u']}'\n";
 	exit(STATE_CRITICAL);
@@ -113,7 +133,7 @@ if ($json === null) {
 	exit(STATE_CRITICAL);
 }
 
-$eval = 'return $json' . $opt['e'] .';';
+$eval = 'return $json' . $opt['e'] . ';';
 if ($verbose) {
 	echo "EVAL: $eval\n";
 }
@@ -132,7 +152,7 @@ if ($verbose) {
 	echo "RES: $res; VALUE: $value; WARNING: $warning; CRITICAL: $critical\n";
 }
 
-if ((!$invert && $value > $critical) || ($invert && $value < $critical))  {
+if ((!$invert && $value > $critical) || ($invert && $value < $critical)) {
 	echo LABEL, ": CRITICAL: {$opt['m']}: $res\n";
 	exit(STATE_CRITICAL);
 } elseif ((!$invert && $value > $warning) || ($invert && $value < $warning)) {
